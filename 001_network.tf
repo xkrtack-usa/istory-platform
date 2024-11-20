@@ -50,7 +50,7 @@ resource "aws_subnet" "private-subnet-c" {
   availability_zone = "ap-northeast-2c"
   tags_all = {
     Name                                        = "private-1"
-    "kubernetes.io/cluster/${var.cluster-name}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/internal-elb"                      = "1"
   }
 }
