@@ -4,7 +4,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.VPC_NAME}-vpc"
+    Name = "${var.vpc_name}-vpc"
   }
 }
 
@@ -48,7 +48,7 @@ resource "aws_subnet" "private-subnet-c" {
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = "10.1.4.0/24"
   availability_zone = "ap-northeast-2c"
-  tags = {
+  tags_all = {
     Name                                        = "private-1"
     "kubernetes.io/cluster/${var.cluster-name}" = "shared"
     "kubernetes.io/role/internal-elb"                      = "1"
@@ -60,7 +60,7 @@ resource "aws_subnet" "private-subnet-c" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${var.VPC_NAME}-igw"
+    Name = "${var.vpc_name}-igw"
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "nat-gateway" {
   subnet_id     = aws_subnet.public-subnet-a.id
   allocation_id = aws_eip.nat-eip.id
   tags = {
-    Name = "${var.VPC_NAME}-nat-gateway"
+    Name = "${var.vpc_name}-nat-gateway"
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_route_table" "public-rtb" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "${var.VPC_NAME}-public-rtb"
+    Name = "${var.vpc_name}-public-rtb"
   }
 }
 
@@ -111,7 +111,7 @@ resource "aws_route_table" "private-rtb1" {
     nat_gateway_id = aws_nat_gateway.nat-gateway.id
   }
   tags = {
-    Name = "${var.VPC_NAME}-private-rtb1"
+    Name = "${var.vpc_name}-private-rtb1"
   }
 }
 resource "aws_route_table" "private-rtb2" {
@@ -121,7 +121,7 @@ resource "aws_route_table" "private-rtb2" {
     nat_gateway_id = aws_nat_gateway.nat-gateway.id
   }
   tags = {
-    Name = "${var.VPC_NAME}-private-rtb2"
+    Name = "${var.vpc_name}-private-rtb2"
   }
 }
 
