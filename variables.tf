@@ -19,3 +19,9 @@ variable "vpc_name" {
   type        = string
   default     = "dangtong"
 }
+
+variable "cluster_name" {
+  description = "name of cluster"
+  type        = string
+  default     = "istory"
+}
