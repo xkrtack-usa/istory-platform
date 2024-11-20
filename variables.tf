@@ -25,3 +25,9 @@ variable "cluster_name" {
   type        = string
   default     = "istory"
 }
+
+variable "environment" {
+  description = "Environment name (e.g., dev, stg, prd)"
+  type        = string
+  default     = "dev"  # 필요한 경우 기본값 설정
+}
