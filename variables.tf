@@ -13,3 +13,9 @@ variable "aws_region" {
   type        = string
   default     = "ap-northeast-2"  # 기본값 설정 (선택사항)
 }
+
+variable "vpc_name" {
+  description = "name of vpc"
+  type        = string
+  default     = "dangtong"
+}
