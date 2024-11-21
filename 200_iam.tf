@@ -15,8 +15,12 @@ resource "aws_iam_role" "ec2_role" {
       }
     ]
   })
-
-  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"]
+  
+}
+# 정책 연결
+resource "aws_iam_role_policy_attachment" "ecr_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
 }
 ######################################################################################################################
 # IAM Policy 설정
