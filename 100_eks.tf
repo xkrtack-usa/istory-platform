@@ -28,7 +28,7 @@ module "eks" {
 
   # EKS Managed Node Group
   eks_managed_node_group_defaults = {
-    instance_types = ["m7i.large"]
+    instance_types = ["t3.nano"]
   }
 
   eks_managed_node_groups = {
