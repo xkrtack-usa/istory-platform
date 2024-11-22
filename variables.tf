@@ -1,12 +1,12 @@
-variable "aws_access_key_id" {
-  description = "AWS Access Key ID"
-  type        = string
-}
+# variable "aws_access_key_id" {
+#   description = "AWS Access Key ID"
+#   type        = string
+# }
 
-variable "aws_secret_access_key" {
-  description = "AWS Secret Access Key"
-  type        = string
-}
+# variable "aws_secret_access_key" {
+#   description = "AWS Secret Access Key"
+#   type        = string
+# }
 
 variable "aws_region" {
   description = "AWS Region"
@@ -36,4 +36,10 @@ variable "environment" {
   description = "Environment name (e.g., dev, stg, prd)"
   type        = string
   default     = "dev"  # 필요한 경우 기본값 설정
+}
+
+variable "terraform_aws_profile" {
+  description = "AWS profile for Terraform"
+  type        = string
+  default     = "default"
 }
