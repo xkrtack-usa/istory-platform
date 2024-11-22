@@ -6,7 +6,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "cwave-vpc"
+    Name = "${var.cluster_name}-vpc"
   }
 }
 
@@ -22,6 +22,7 @@ resource "aws_subnet" "public-subnet-a" {
     Name = "public-0"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                               = "1"
+    "kubernetes.io/role/alb"                               = "1"
   }
 }
 
@@ -33,6 +34,7 @@ resource "aws_subnet" "public-subnet-c" {
     Name = "public-1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                               = "1"
+    "kubernetes.io/role/alb"                               = "1"
   }
 }
 
@@ -54,7 +56,7 @@ resource "aws_subnet" "private-subnet-c" {
   tags = {
     Name                                        = "private-1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    "kubernetes.io/role/internal-elb"                      = "1"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
 }
 
@@ -64,7 +66,7 @@ resource "aws_subnet" "private-subnet-c" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "cwave-igw"
+    Name = "${var.cluster_name}-igw"
   }
 }
 
@@ -79,7 +81,7 @@ resource "aws_nat_gateway" "nat-gateway" {
   subnet_id     = aws_subnet.public-subnet-a.id
   allocation_id = aws_eip.nat-eip.id
   tags = {
-    Name = "cwave-nat-gateway"
+    Name = "${var.cluster_name}-nat-gateway"
   }
 }
 
@@ -93,7 +95,7 @@ resource "aws_route_table" "public-rtb" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "cwave-public-rtb"
+    Name = "${var.cluster_name}-public-rtb"
   }
 }
 
@@ -109,35 +111,24 @@ resource "aws_route_table_association" "public-rtb-assoc2" {
 }
 
 
-resource "aws_route_table" "private-rtb1" {
+resource "aws_route_table" "private-rtb" {
   vpc_id = aws_vpc.vpc.id
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat-gateway.id
   }
   tags = {
-    Name = "cwave-private-rtb1"
-  }
-}
-
-resource "aws_route_table" "private-rtb2" {
-  vpc_id = aws_vpc.vpc.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat-gateway.id
-  }
-  tags = {
-    Name = "cwave-private-rtb2"
+    Name = "${var.cluster_name}-private-rtb"
   }
 }
 
 resource "aws_route_table_association" "private-rtb-assoc1" {
-  route_table_id = aws_route_table.private-rtb1.id
+  route_table_id = aws_route_table.private-rtb.id
   subnet_id      = aws_subnet.private-subnet-a.id
 }
 
 resource "aws_route_table_association" "private-rtb-assoc2" {
-  route_table_id = aws_route_table.private-rtb2.id
+  route_table_id = aws_route_table.private-rtb.id
   subnet_id      = aws_subnet.private-subnet-c.id
 }
 

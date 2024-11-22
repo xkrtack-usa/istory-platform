@@ -29,7 +29,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "version of cluster"
   type        = string
-  default     = "1.27"
+  default     = "1.31"
 }
 
 variable "environment" {

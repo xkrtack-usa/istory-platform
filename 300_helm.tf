@@ -32,23 +32,6 @@ provider "kubernetes" {
   }
 }
 
-# data "aws_caller_identity" "current" {}
-
-# module "eks-auth" {
-#   source = "terraform-aws-modules/eks/aws//modules/aws-auth"
-#   version = "~> 20.29.0"
-
-#   manage_aws_auth_configmap = true
-
-#   aws_auth_users = [
-#     {
-#       userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cicd"
-#       username = "cicd"
-#       groups   = ["system:masters"]
-#     }
-#   ]
-# }
-
 ######################################################################################################################
 # 헬름차트
 # 쿠버네티스 클러스터 추가 될때마다 alias 를 변경해서 추가해주기
@@ -93,7 +76,7 @@ resource "helm_release" "eks_common_alb" {
     for_each = {
       "clusterName"                                               = var.cluster_name
       "serviceAccount.create"                                     = "true"
-      "serviceAccount.name"                                       = local.lb_controller_service_account_name
+      "serviceAccount.name"                                       = "aws-load-balancer-controller"
       "region"                                                    = var.aws_region
       "vpcId"                                                     = aws_vpc.vpc.id
       "image.repository"                                          = "602401143452.dkr.ecr.${var.aws_region}.amazonaws.com/amazon/aws-load-balancer-controller"

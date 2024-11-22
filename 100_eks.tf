@@ -1,7 +1,8 @@
 #########################################################################################################
 ## Create eks cluster
 #########################################################################################################
-
+# Add this at the top of your file
+data "aws_caller_identity" "current" {}
 
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
@@ -12,7 +13,11 @@ module "eks" {
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
   
-
+  # EBS 관련 정책 추가
+  # iam_role_additional_policies = {
+  #   AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  #   AmazonEC2FullAccess      = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+  # }
   cluster_addons = {
     coredns = {
       most_recent = true
@@ -26,9 +31,13 @@ module "eks" {
     }
     aws-ebs-csi-driver = {
       most_recent = true
+      service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
+    }
+    eks-pod-identity-agent = {
+      most_recent = true
     }
   }
-
+  enable_cluster_creator_admin_permissions = true
   vpc_id                   = aws_vpc.vpc.id
   subnet_ids               = [aws_subnet.private-subnet-a.id, aws_subnet.private-subnet-c.id]
 
@@ -37,6 +46,8 @@ module "eks" {
     instance_types = ["t3.medium"]
   }
 
+  
+
   eks_managed_node_groups = {
     green = {
       min_size     = 2
@@ -44,9 +55,30 @@ module "eks" {
       desired_size = 2
 
       instance_types = ["t3.medium"]
+      iam_role_additional_policies = {
+        # AWS 관리형 정책 추가
+        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+      }
     }
   }
 }
+
+# EBS CSI Driver를 위한 IRSA 설정
+# module "ebs_csi_irsa" {
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#   version = "~> 5.30"
+
+#   role_name = "${var.cluster_name}-ebs-csi-controller"
+
+#   attach_ebs_csi_policy = true
+
+#   oidc_providers = {
+#     main = {
+#       provider_arn               = module.eks.oidc_provider_arn
+#       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+#     }
+#   }
+# }
 
 module "vpc_cni_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -79,12 +111,11 @@ module "vpc_cni_irsa" {
 # 쿠버네티스 추가 될때마다 lb_controller_iam_role_name 을 추가해야함.
 ######################################################################################################################
 
-locals {
-  # data-eks 를 위한 role name
-  cwave_eks_lb_controller_iam_role_name = "cwave-eks-aws-lb-controller-role"
-  k8s_aws_lb_service_account_namespace = "kube-system"
-  lb_controller_service_account_name   = "aws-load-balancer-controller"
-}
+# locals {
+#   # eks 를 위한 role name
+#   k8s_aws_lb_service_account_namespace = "kube-system"
+#   lb_controller_service_account_name   = "aws-load-balancer-controller"
+# }
 
 ######################################################################################################################
 # EKS 클러스터 인증 데이터 소스 추가
@@ -94,34 +125,11 @@ data "aws_eks_cluster_auth" "eks_cluster_auth" {
   name = var.cluster_name
 }
 
-######################################################################################################################
-# Load Balancer Controller ROLE 설정
-######################################################################################################################
-# module "cwave_eks_lb_controller_role" {
-#   source      = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-#   version     = "v5.1.0"
-#   create_role = true
-
-#   role_name        = local.cwave_eks_lb_controller_iam_role_name
-#   role_path        = "/"
-#   role_description = "Used by AWS Load Balancer Controller for EKS"
-
-#   role_permissions_boundary_arn = ""
-
-#   provider_url = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
-#   oidc_fully_qualified_subjects = [
-#     "system:serviceaccount:${local.k8s_aws_lb_service_account_namespace}:${local.lb_controller_service_account_name}"
-#   ]
-#   oidc_fully_qualified_audiences = [
-#     "sts.amazonaws.com"
-#   ]
-# }
-
 # Load Balancer Controller를 위한 IAM Role 생성
 module "lb_controller_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
-  role_name = "eks-lb-controller-role"
+  role_name = "eks-aws-lb-controller-role"
 
   attach_load_balancer_controller_policy = true
 
